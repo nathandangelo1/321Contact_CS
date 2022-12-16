@@ -1,5 +1,6 @@
 ﻿
 using static System.Console;
+using System.Threading;
 
 namespace Contact_321_CSHARP {// begin namespace
     static class Program {// begin class
@@ -31,6 +32,7 @@ namespace Contact_321_CSHARP {// begin namespace
             }// END CONSTRUCTOR
         }// END CONTACT
 
+
         #region // MAIN FUNCTIONS
         static void Main(string[] args) {// begin main
             bool running = true;
@@ -57,14 +59,13 @@ namespace Contact_321_CSHARP {// begin namespace
         // DISPLAYS MAIN MENU
         static bool MainMenu() {
             bool success;
-            //bool successful;
             int choice;
             string subChoiceAddMode;
 
-            Header("321 Contact", "Record Search/Add");
-
             // GET MENU CHOICE FROM USER
             do {
+                Console.Clear();
+                Header("321 Contact", "Record Search/Add");
                 success = int.TryParse((GetUserInput("\n\t\tOPTIONS:\n\n\t\t1 : Search Records \n\t\t2 : Add New Record \n\t\t3 : Remove Record\n\t\t4 : Quit\n\n\t\t")), out choice);
 
             } while (!success || choice < 0 || choice > 5);
@@ -77,6 +78,8 @@ namespace Contact_321_CSHARP {// begin namespace
 
                 // OPTION TO ADD AS MANY CONTACTS AS DESIRED
                 bool carryOn;
+                
+                // ADD RECORD, THEN CONTINUE TO ADD RECORDS UNTIL CARRYON IS FALSE
                 do {
                     carryOn = false;
 
@@ -94,7 +97,7 @@ namespace Contact_321_CSHARP {// begin namespace
 
                 } while (carryOn);
 
-                // REWRITES CONTACTS.DAT FILE, INCLUDING NEW ADDITIONS
+                // REWRITES(SAVE) CONTACTS.DAT FILE, INCLUDING NEW ADDITIONS
                 try {
                     FileOutputWriteContacts();
                 } catch (Exception e) {
@@ -102,11 +105,20 @@ namespace Contact_321_CSHARP {// begin namespace
                 }
 
             } else if (choice == 3) {
-                DeleteMode();
+                bool outputSuccess = false;
+                bool deleteSuccessful = DeleteMode();
 
+                if (deleteSuccessful) {
+                    // REWRITE(SAVE) CONTACTS.DAT FILE
+                    outputSuccess = FileOutputWriteContacts();
+                } 
+                // IF DELETE AND SAVE SUCCESSFUL, WRITE 
+                if (deleteSuccessful && outputSuccess) {
+                    WriteLine("Contact successfully removed from file.");
+                    Thread.Sleep(3000);
+                }
             } else if (choice == 4) {
                 return false;
-
             } else if (choice == 5) {
                 FileOutputWriteContacts();
 
@@ -276,8 +288,11 @@ namespace Contact_321_CSHARP {// begin namespace
         }// END ADDMODE
 
         // DELETES CONTACT FROM CONTACTS ARRAY
-        static void DeleteMode() {
+        static bool DeleteMode() {     // must search to verify contact is even in the array before deletion
             int searchIndex = 0;
+
+            // CREATE NEW RESULT ARRAY ONE ELEMENT SMALLER THAN CONTACTSARR
+            Contact[] result = new Contact[contactsArr.Length - 1]; 
 
             string firstLastSearch = GetUserInput("\n\tEnter first and last name for removal of contact from records. Spelling must be exact. Example. \"John Smith\"\n:");
             
@@ -287,19 +302,26 @@ namespace Contact_321_CSHARP {// begin namespace
             // IF SEARCHINDEX EQUALS -1, NO RESULTS WERE FOUND/RETURNED
             if (searchIndex != -1) {
 
-                // CREATE NEW RESULT ARRAY ONE ELEMENT SMALLER THAN CONTACTSARR
-                Contact[] result = new Contact[contactsArr.Length - 1];
+                try {
+                    // CREATE NEW RESULT ARRAY ONE ELEMENT SMALLER THAN CONTACTSARR
+                    result = new Contact[contactsArr.Length - 1];
 
-                // SHIFT ELEMENTS TO REMOVE CONTACT AT SEARCH INDEX FROM RESULT ARRAY
-                for (int i = 0, index = 0 ; i < result.Length; i++, index++) {
+                    // SHIFT ELEMENTS TO REMOVE CONTACT AT SEARCH INDEX FROM RESULT ARRAY
+                    for (int i = 0, index = 0; i < result.Length; i++, index++) {
 
-
-                    if (i == searchIndex) {
-                        index++;
-                        result[i] = contactsArr[index];
-                    } else {
-                        result[i] = contactsArr[index];
+                        // IF INDEX MATCH, SKIP INDEX
+                        if (i == searchIndex) {
+                            index++;
+                            result[i] = contactsArr[index];
+                        } else {
+                            result[i] = contactsArr[index];
+                        }
                     }
+                    return true;
+
+                } catch(Exception e) {
+                    WriteLine(e.Message);
+                    return false;
                 }
 
                 // SET CONTACTSARR EQUAL TO RESULT ARRAY
@@ -307,6 +329,7 @@ namespace Contact_321_CSHARP {// begin namespace
 
             } else {
                 WriteLine("0 records matching search results.");
+                return false;
             }
 
         }// END DELETEMODE
@@ -323,12 +346,11 @@ namespace Contact_321_CSHARP {// begin namespace
                 // IF CONTACTSARR[I].FIRSTNAME, OR .LASTNAME, EQUALS OR CONTAINS SEARCHVALUE
                 // if (contactsArr[i].firstName.Equals(searchValue, StringComparison.OrdinalIgnoreCase) || contactsArr[i].firstName.Contains(searchValue, StringComparison.OrdinalIgnoreCase) || contactsArr[i].lastName.Equals(searchValue, StringComparison.OrdinalIgnoreCase) || contactsArr[i].lastName.Contains(searchValue, StringComparison.OrdinalIgnoreCase)) {
                 if (contactsArr[i].firstName.Equals(splitSearch[0], StringComparison.OrdinalIgnoreCase) && contactsArr[i].lastName.Equals(splitSearch[1], StringComparison.OrdinalIgnoreCase)) {
-
                     return i;
 
                 } else {
-
                     continue;
+
                 }// END ELSE
             }// END FOR
 
@@ -548,7 +570,7 @@ namespace Contact_321_CSHARP {// begin namespace
 #endregion
 
 
-        #region // STANDARD FUNCTIONS (INPUT AND HEADER)
+        #region // STANDARD FUNCTIONS (USERINPUT AND HEADER)
         // GETS USER INPUT(STANDARD)
         static string GetUserInput(string text) {
             string? name;
