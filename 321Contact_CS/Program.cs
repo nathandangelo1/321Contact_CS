@@ -39,7 +39,7 @@ namespace Contact_321_CSHARP {// begin namespace
 
             Title = "321 Contact";
 
-            Header("321 Contact", "Record Search/Add");
+            Header("321 Contact", "Contact App");
 
             // FILL CONTACTSARR WITH RECORDS
             PopulateContactsArr();
@@ -65,7 +65,7 @@ namespace Contact_321_CSHARP {// begin namespace
             // GET MENU CHOICE FROM USER
             do {
                 Console.Clear();
-                Header("321 Contact", "Record Search/Add");
+                Header("321 Contact", "Contact App");
                 success = int.TryParse((GetUserInput("\n\t\tOPTIONS:\n\n\t\t1 : Search Records \n\t\t2 : Add New Record \n\t\t3 : Remove Record\n\t\t4 : Quit\n\n\t\t")), out choice);
 
             } while (!success || choice < 0 || choice > 5);
@@ -114,8 +114,10 @@ namespace Contact_321_CSHARP {// begin namespace
                 } 
                 // IF DELETE AND SAVE SUCCESSFUL, WRITE 
                 if (deleteSuccessful && outputSuccess) {
-                    WriteLine("Contact successfully removed from file.");
-                    Thread.Sleep(3000);
+                    WriteLine("\n\n\tContact successfully removed from file.");
+                    //Thread.Sleep(4000);
+                    Console.WriteLine("\n\tPress any key to return to the main menu...");
+                    Console.ReadKey(true);
                 }
             } else if (choice == 4) {
                 return false;
@@ -257,7 +259,7 @@ namespace Contact_321_CSHARP {// begin namespace
         // ADDS NEW CONTACT NEWCONTACT TO CONTACT ARRAY
         static void AddMode() {
             
-            Header("321 Contact", "Record Search/Add");
+            Header("321 Contact", "Add Record");
 
             string firstName = GetUserInput("\t\tPlease enter new user's first name:  ");
             string lastName = GetUserInput("\t\tPlease enter new user's last name:  ");
@@ -291,17 +293,28 @@ namespace Contact_321_CSHARP {// begin namespace
         static bool DeleteMode() {     // must search to verify contact is even in the array before deletion
             int searchIndex = 0;
 
-            // CREATE NEW RESULT ARRAY ONE ELEMENT SMALLER THAN CONTACTSARR
-            Contact[] result = new Contact[contactsArr.Length - 1]; 
+            Header("321 Contact", "Record Removal");
 
-            string firstLastSearch = GetUserInput("\n\tEnter first and last name for removal of contact from records. Spelling must be exact. Example. \"John Smith\"\n:");
+            // CREATE NEW RESULT ARRAY ONE ELEMENT SMALLER THAN CONTACTSARR
+            Contact[] result = new Contact[contactsArr.Length - 1];
+
+            //string firstLastSearch = GetUserInput("\n\tEnter first and last name for removal of contact from records.\n\tSpelling must be exact. Example. \"John Smith\"\n\n\t:");
+            Console.WriteLine("\n\tEnter the first and last name of the contact you would like to remove.\n\n\tSpelling must be exact. Example. \"John Smith\"\n\n");
+            string firstNameDelete = GetUserInput("\n\tEnter first name: ");
+            string lastNameDelete = GetUserInput("\n\tEnter last name: ");
+
             
             // SEARCHFOR GETS INDEX OF CONTACT MATCHING FIRST AND LAST NAME ENTERED
-            searchIndex = GetIndexForDeletion(firstLastSearch);
+            searchIndex = GetIndexForDeletion(firstNameDelete,lastNameDelete);
 
             // IF SEARCHINDEX EQUALS -1, NO RESULTS WERE FOUND/RETURNED
-            if (searchIndex != -1) {
-
+            if (searchIndex == -1) {
+                WriteLine("\n\t0 records matching search results.");
+                WriteLine("\n\tPress any key to return to main menu...");
+                ReadKey();
+                return false;
+                
+            } else {
                 try {
                     // CREATE NEW RESULT ARRAY ONE ELEMENT SMALLER THAN CONTACTSARR
                     result = new Contact[contactsArr.Length - 1];
@@ -317,35 +330,32 @@ namespace Contact_321_CSHARP {// begin namespace
                             result[i] = contactsArr[index];
                         }
                     }
-                    return true;
+                    //return true;
 
-                } catch(Exception e) {
+                } catch (Exception e) {
                     WriteLine(e.Message);
                     return false;
                 }
 
                 // SET CONTACTSARR EQUAL TO RESULT ARRAY
                 contactsArr = result;
-
-            } else {
-                WriteLine("0 records matching search results.");
-                return false;
+                return true;
             }
 
         }// END DELETEMODE
 
         // SEARCHES RECORDS FOR SEARCH VALUE AND RETURNS INDEX OF SEARCH VALUE FOR DELETION
-        static int GetIndexForDeletion(string searchValue) {
+        static int GetIndexForDeletion(string firstName, string lastName) {
             int index = 0;
 
             // FOR EACH CONTACT IN CONTACTS
             for (int i = 0; i < contactsArr.Length; i++) {
 
-                string[] splitSearch = searchValue.Split(' ');
+                //string[] splitSearch = searchValue.Split(' ');
 
                 // IF CONTACTSARR[I].FIRSTNAME, OR .LASTNAME, EQUALS OR CONTAINS SEARCHVALUE
                 // if (contactsArr[i].firstName.Equals(searchValue, StringComparison.OrdinalIgnoreCase) || contactsArr[i].firstName.Contains(searchValue, StringComparison.OrdinalIgnoreCase) || contactsArr[i].lastName.Equals(searchValue, StringComparison.OrdinalIgnoreCase) || contactsArr[i].lastName.Contains(searchValue, StringComparison.OrdinalIgnoreCase)) {
-                if (contactsArr[i].firstName.Equals(splitSearch[0], StringComparison.OrdinalIgnoreCase) && contactsArr[i].lastName.Equals(splitSearch[1], StringComparison.OrdinalIgnoreCase)) {
+                if (contactsArr[i].firstName.Equals(firstName, StringComparison.OrdinalIgnoreCase) && contactsArr[i].lastName.Equals(lastName, StringComparison.OrdinalIgnoreCase)) {
                     return i;
 
                 } else {
@@ -362,6 +372,9 @@ namespace Contact_321_CSHARP {// begin namespace
 
 
         #region // SEARCH FUNCTIONS
+
+
+
         // GETS USER INPUT FOR SEARCH AND CALLS SEARCH FUNCTIONS
         static void SearchMode() {// begin main
             string searchValue;
@@ -585,8 +598,13 @@ namespace Contact_321_CSHARP {// begin namespace
         }// END GETUSERINPUT()
         // DISPLAYS HEADER
         public static void Header(string title, string subtitle = "") {
+
+            
+
+
             Clear();
             WriteLine();
+            //ForegroundColor= ConsoleColor.Green;
             int windowWidth = 90 - 2;
             string titleContent = String.Format("\t    ║{0," + ((windowWidth / 2) + (title.Length / 2)) + "}{1," + (windowWidth - (windowWidth / 2) - (title.Length / 2) + 1) + "}", title, "║");
             string subtitleContent = String.Format("\t    ║{0," + ((windowWidth / 2) + (subtitle.Length / 2)) + "}{1," + (windowWidth - (windowWidth / 2) - (subtitle.Length / 2) + 1) + "}", subtitle, "║");
@@ -597,6 +615,8 @@ namespace Contact_321_CSHARP {// begin namespace
                 WriteLine(subtitleContent);
             }
             WriteLine("\t    ╚════════════════════════════════════════════════════════════════════════════════════════╝");
+
+            
         }
         #endregion
 
